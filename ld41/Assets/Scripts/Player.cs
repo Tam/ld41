@@ -7,11 +7,12 @@ public class Player : MonoBehaviour {
 	// Parameters
 	// =====================================================================
 
+	
+	public Controller2D controller;
 	public float maxJumpHeight = 3.5f;
 	public float minJumpHeight = 1f;
 	public float timeToJumpApex = 0.3f;
 	public float wallSlideSpeedMax = 3f;
-	private float wallStickTime = 0.1f;
 	public Vector2 wallJumpClimb;
 	public Vector2 wallJumpOff;
 	public Vector2 wallLeap;
@@ -24,12 +25,12 @@ public class Player : MonoBehaviour {
 	private float _gravity;
 	private float _maxJumpVelocity;
 	private float _minJumpVelocity;
+	private float _wallStickTime = 0.1f;
 	private float _timeToWallUnstick;
 
-	private bool _wallSliding;
+	public bool wallSliding;
 	private int _wallDirX;
 	
-	private Controller2D _controller;
 	private Vector3 _velocity;
 	private Vector2 _directionalInput;
 
@@ -43,7 +44,7 @@ public class Player : MonoBehaviour {
 
 	private void Start()
 	{
-		_controller = GetComponent<Controller2D>();
+		controller = GetComponent<Controller2D>();
 
 		_gravity = -(2 * maxJumpHeight) / Mathf.Pow(timeToJumpApex, 2);
 		_maxJumpVelocity = Mathf.Abs(_gravity) * timeToJumpApex;
@@ -55,13 +56,13 @@ public class Player : MonoBehaviour {
 		CalculateVelocity();
 		HandleWallSliding();
 		
-		_controller.Move(_velocity * Time.deltaTime, _directionalInput);
+		controller.Move(_velocity * Time.deltaTime, _directionalInput);
 
-		if (_controller.collisions.above || _controller.collisions.below)
+		if (controller.collisions.above || controller.collisions.below)
 		{
-			if (_controller.collisions.slidingDownMaxSlope)
+			if (controller.collisions.slidingDownMaxSlope)
 			{
-				_velocity.y += _controller.collisions.slopeNormal.y
+				_velocity.y += controller.collisions.slopeNormal.y
 							   * -_gravity
 							   * Time.deltaTime;
 			}
@@ -82,15 +83,15 @@ public class Player : MonoBehaviour {
 
 	private void HandleWallSliding ()
 	{
-		_wallSliding = false;
-		_wallDirX = _controller.collisions.left ? -1 : 1;
+		wallSliding = false;
+		_wallDirX = controller.collisions.left ? -1 : 1;
 
 		if (
-			(_controller.collisions.left || _controller.collisions.right)
-			&& !_controller.collisions.below
+			(controller.collisions.left || controller.collisions.right)
+			&& !controller.collisions.below
 			&& _velocity.y < 0
 		) {
-			_wallSliding = true;
+			wallSliding = true;
 
 			if (_velocity.y < -wallSlideSpeedMax)
 				_velocity.y = -wallSlideSpeedMax;
@@ -106,12 +107,12 @@ public class Player : MonoBehaviour {
 				}
 				else
 				{
-					_timeToWallUnstick = wallStickTime;
+					_timeToWallUnstick = _wallStickTime;
 				}
 			}
 			else
 			{
-				_timeToWallUnstick = wallStickTime;
+				_timeToWallUnstick = _wallStickTime;
 			}
 		}
 	}
@@ -121,7 +122,7 @@ public class Player : MonoBehaviour {
 
 	public void OnJumpInputDown ()
 	{
-		if (_wallSliding)
+		if (wallSliding)
 		{
 			if (_wallDirX == Mathf.Round(_directionalInput.x))
 			{
@@ -140,25 +141,22 @@ public class Player : MonoBehaviour {
 			}
 		}
 
-		if (_controller.collisions.below)
+		if (controller.collisions.slidingDownMaxSlope)
 		{
-			if (_controller.collisions.slidingDownMaxSlope)
-			{
-				// If not jumping against max slope
-				if (
-					_directionalInput.x
-					!= -Mathf.Sign(_controller.collisions.slopeNormal.x)
-				) {
-					_velocity.y = 
-						_maxJumpVelocity * _controller.collisions.slopeNormal.y;
-					_velocity.x = 
-						_maxJumpVelocity * _controller.collisions.slopeNormal.x;
-				}
+			// If not jumping against max slope
+			if (
+				_directionalInput.x
+				!= -Mathf.Sign(controller.collisions.slopeNormal.x)
+			) {
+				_velocity.y = 
+					_maxJumpVelocity * controller.collisions.slopeNormal.y;
+				_velocity.x = 
+					_maxJumpVelocity * controller.collisions.slopeNormal.x;
 			}
-			else
-			{
-				_velocity.y = _maxJumpVelocity;
-			}
+		}
+		else
+		{
+			_velocity.y = _maxJumpVelocity;
 		}
 	}
 
@@ -179,7 +177,7 @@ public class Player : MonoBehaviour {
 			_velocity.x,
 			targetVelocityX,
 			ref _velocityXSmoothing,
-			_controller.collisions.below 
+			controller.collisions.below 
 				? _accelerationTimeGrounded 
 				: _accelerationTimeAirborne
 		);

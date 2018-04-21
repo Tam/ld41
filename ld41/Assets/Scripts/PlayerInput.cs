@@ -11,6 +11,7 @@ public class PlayerInput : MonoBehaviour
 	private Player _player;
 	private bool _isJumpPressed;
 	private bool _jumpWasPressed;
+	private int _jumpCount;
 	
 	// Unity
 	// =====================================================================
@@ -28,10 +29,16 @@ public class PlayerInput : MonoBehaviour
 		);
 		
 		_player.SetDirectionalInput(directionalInput);
-		
-		if (GetJump())
+
+		if (_player.controller.collisions.below || _player.wallSliding)
+			_jumpCount = 0;
+
+		if (GetJump() && _jumpCount < 2)
+		{
+			_jumpCount++;
 			_player.OnJumpInputDown();
-		
+		}
+
 		if (GetJumpReleased())
 			_player.OnJumpInputUp();
 	}
