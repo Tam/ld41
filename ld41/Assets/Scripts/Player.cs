@@ -33,6 +33,11 @@ public class Player : MonoBehaviour {
 	private Vector3 _velocity;
 	private Vector2 _directionalInput;
 
+	public Vector3 velocity
+	{
+		get { return _velocity; }
+	}
+
 	// Unity
 	// =====================================================================
 
