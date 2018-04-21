@@ -47,63 +47,54 @@ namespace Foliage
 
 		private void OnTriggerEnter2D (Collider2D col)
 		{
-			if (col.gameObject.layer == GameManager.PLAYER_LAYER)
+			_enterOffset = col.transform.position.x - transform.position.x;
+
+			if (GameManager.i.player.velocity.y < -3f)
 			{
-				_enterOffset = col.transform.position.x - transform.position.x;
-
-				if (GameManager.i.player.velocity.y < -3f)
+				if (col.transform.position.x < transform.position.x)
 				{
-					if (col.transform.position.x < transform.position.x)
-					{
-						_spring.ApplyAdditiveForce(_BEND_FORCE_ON_EXIT);
-					}
-					else
-					{
-						_spring.ApplyAdditiveForce(-_BEND_FORCE_ON_EXIT);
-					}
-
-					_isRebounding = true;
+					_spring.ApplyAdditiveForce(_BEND_FORCE_ON_EXIT);
 				}
+				else
+				{
+					_spring.ApplyAdditiveForce(-_BEND_FORCE_ON_EXIT);
+				}
+
+				_isRebounding = true;
 			}
 		}
 
 		private void OnTriggerStay2D (Collider2D col)
 		{
-			if (col.gameObject.layer == GameManager.PLAYER_LAYER)
+			float offset = col.transform.position.x - transform.position.x;
+			if (_isBending || Mathf.Sign(_enterOffset) != Mathf.Sign(offset))
 			{
-				float offset = col.transform.position.x - transform.position.x;
-				if (_isBending || Mathf.Sign(_enterOffset) != Mathf.Sign(offset))
-				{
-					_isRebounding = false;
-					_isBending    = true;
+				_isRebounding = false;
+				_isBending    = true;
 				
-					// Figure out how far we have moved into the trigger and
-					// then map the offset to -1 to 1. 0 Would be neutral, -1 to
-					// the left and +1 ro the right.
-					float radius = _colliderHalfWidth + col.bounds.size.x * 0.5f;
-					_exitOffset = MathHelpers.Map(offset, -radius, radius, -1f, 1f);
-					SetVertHorizontalOffset(_exitOffset);
-				}
+				// Figure out how far we have moved into the trigger and
+				// then map the offset to -1 to 1. 0 Would be neutral, -1 to
+				// the left and +1 ro the right.
+				float radius = _colliderHalfWidth + col.bounds.size.x * 0.5f;
+				_exitOffset = MathHelpers.Map(offset, -radius, radius, -1f, 1f);
+				SetVertHorizontalOffset(_exitOffset);
 			}
 		}
 
 		private void OnTriggerExit2D (Collider2D col)
 		{
-			if (col.gameObject.layer == GameManager.PLAYER_LAYER)
+			if (_isBending)
 			{
-				if (_isBending)
-				{
-					// Apply force in the opposite direction that we are
-					// currently bending
-					_spring.ApplyForceStartingAtPosition(
-						_BEND_FORCE_ON_EXIT * Mathf.Sign(_exitOffset),
-						_exitOffset
-					);
-				}
-
-				_isBending    = false;
-				_isRebounding = true;
+				// Apply force in the opposite direction that we are
+				// currently bending
+				_spring.ApplyForceStartingAtPosition(
+					_BEND_FORCE_ON_EXIT * Mathf.Sign(_exitOffset),
+					_exitOffset
+				);
 			}
+
+			_isBending    = false;
+			_isRebounding = true;
 		}
 
 		// Helpers

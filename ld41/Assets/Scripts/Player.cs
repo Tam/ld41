@@ -16,7 +16,7 @@ public class Player : MonoBehaviour {
 	public Vector2 wallJumpOff;
 	public Vector2 wallLeap;
 	
-	private float _moveSpeed = 6;
+	private float _moveSpeed = 10;
 	private float _accelerationTimeAirborne = 0.1f;
 	private float _accelerationTimeGrounded = 0.05f;
 
